@@ -28,6 +28,7 @@ def read_clocktime():
 
     for _ in range(hours):
         read_article()
+        sleep(1)
 
 def read_article():
     """
