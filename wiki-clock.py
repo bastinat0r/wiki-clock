@@ -2,15 +2,30 @@
 
 import pyttsx
 import wikipedia
+import argparse
 from time import sleep
 from datetime import datetime
 from apscheduler.scheduler import Scheduler
 
+#argument parser
+parser = argparse.ArgumentParser(description='Wiki-Clock')
+parser.add_argument('-l', '--lang', help='wikipedia language to use')
+
 #initialisation
 engine = pyttsx.init()
-engine.setProperty('rate', 170)
-engine.setProperty('voice', 'english')
-#wikipedia.set_lang('simple')
+parser.add_argument('-r', '--rate', help='reading speed in words per minute, defaults to 170', default='170')
+parser.add_argument('-v', '--voice', help='reading voice', default="english")
+
+voices = [voice.id for voice in engine.getProperty('voices')]
+voices = ", ".join(voices)
+parser.epilog = "Aviable options for --voice are: %s" %voices
+
+args = parser.parse_args()
+print args
+if args.lang:
+    wikipedia.set_lang(args.lang)
+engine.setProperty('rate', int(args.rate))
+engine.setProperty('voice', args.voice)
 
 # Start the scheduler
 sched = Scheduler()
