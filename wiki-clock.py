@@ -9,12 +9,13 @@ from apscheduler.scheduler import Scheduler
 
 #argument parser
 parser = argparse.ArgumentParser(description='Wiki-Clock')
-parser.add_argument('-l', '--lang', help='wikipedia language to use')
+parser.add_argument('-l', '--lang', help='wikipedia language to use', default='en')
 
 #initialisation
 engine = pyttsx.init()
 parser.add_argument('-r', '--rate', help='reading speed in words per minute, defaults to 170', default='170')
 parser.add_argument('-v', '--voice', help='reading voice', default="english")
+parser.add_argument('--loop', help='read stuff all the time', action="store_true")
 
 voices = [voice.id for voice in engine.getProperty('voices')]
 voices = ", ".join(voices)
@@ -22,8 +23,7 @@ parser.epilog = "Aviable options for --voice are: %s" %voices
 
 args = parser.parse_args()
 print args
-if args.lang:
-    wikipedia.set_lang(args.lang)
+wikipedia.set_lang(args.lang)
 engine.setProperty('rate', int(args.rate))
 engine.setProperty('voice', args.voice)
 
@@ -67,10 +67,14 @@ def read_article():
     engine.say(summary)
     engine.runAndWait()
 
-sched.add_cron_job(read_clocktime, minute=0)
+if not args.loop:
+    sched.add_cron_job(read_clocktime, minute=0)
 
 if __name__ == '__main__':
-    read_clocktime()
+    if args.loop:
+        while True:
+            read_article()
+            sleep(1)
     while True:
         sleep(60)
 
