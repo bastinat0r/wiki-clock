@@ -1,3 +1,5 @@
+#!/usr/bin/python2.7
+
 import pyttsx
 import wikipedia
 from time import sleep
