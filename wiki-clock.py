@@ -15,6 +15,7 @@ parser.add_argument('-l', '--lang', help='wikipedia language to use', default='e
 engine = pyttsx.init()
 parser.add_argument('-r', '--rate', help='reading speed in words per minute, defaults to 170', default='170')
 parser.add_argument('-v', '--voice', help='reading voice', default="english")
+parser.add_argument('-s', '--silent', help='silent mode - text output only', action="store_true")
 parser.add_argument('--loop', help='read stuff all the time', action="store_true")
 
 voices = [voice.id for voice in engine.getProperty('voices')]
@@ -30,6 +31,14 @@ engine.setProperty('voice', args.voice)
 # Start the scheduler
 sched = Scheduler()
 sched.start()
+
+def say(text):
+    if args.silent:
+        print "say: %s" %text
+    else:
+        engine.say(text)
+        engine.runAndWait()
+    sleep(0.5)
 
 
 def read_clocktime():
@@ -51,21 +60,24 @@ def read_article():
     """
     read random article
     """
-    article_title = wikipedia.random()
-    try:
-        summary = wikipedia.summary(article_title)
-    except wikipedia.exceptions.DisambiguationError, e:
-        print "DISAMBIGUATION: %s" %article_title
-        article_title = e.options[0]
-        summary = wikipedia.summary(e.options[0])
-    finally:
-        print article_title
-    engine.say(article_title)
-    engine.runAndWait()
-    sleep(0.5)
-
-    engine.say(summary)
-    engine.runAndWait()
+    article_title = None
+    options = None
+    while article_title == None:
+        if options == None or options == []:
+            article_title = wikipedia.random()
+        else:
+            article_title = options.pop()
+        try:
+            summary = wikipedia.summary(article_title)
+            options = None
+        except wikipedia.exceptions.DisambiguationError, e:
+            print "DISAMBIGUATION: %s" %article_title
+            if options == None:
+                options = e.options
+            article_title = None
+    print(article_title)
+    say(article_title)
+    say(summary)
 
 if not args.loop:
     sched.add_cron_job(read_clocktime, minute=0)
